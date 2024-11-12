@@ -5,7 +5,7 @@ using Core.Models;
 
 namespace API.Controllers
 {
-    [Route("api/users")]
+    [Route("api/v1/users")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -16,7 +16,7 @@ namespace API.Controllers
             _userService = userService;
         }
 
-        [HttpPost("add")]
+        [HttpPost]
         public async Task<ActionResult<ApiResponse<UserResponse>>> AddUser([FromBody] AddUserRequest input)
         {
             try
@@ -154,7 +154,7 @@ namespace API.Controllers
             }
         }
 
-        [HttpPost("datatable")]
+        [HttpPost("DataTable")]
         public async Task<ActionResult<ApiResponseWithPaging<UserResponse>>> GetAllUsers([FromBody] UserQueryParams queryParams)
         {
             if (!ModelState.IsValid)

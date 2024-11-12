@@ -4,25 +4,24 @@ using Core.Models;
 
 namespace API.Controllers
 {
-    [Route("api/role")]
+    [Route("api/v1/permissions")]
     [ApiController]
-    public class RoleController : ControllerBase
+    public class PermissionController : ControllerBase
     {
-        private readonly IRoleService _roleService;
+        private readonly IPermissionService _permissionService;
 
-        public RoleController(IRoleService roleService)
+        public PermissionController(IPermissionService permissionService)
         {
-            _roleService = roleService;
+            _permissionService = permissionService;
         }
 
-        // POST: api/role
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<RoleServiceResponse>>> AddNewRole([FromBody] string roleName)
+        public async Task<ActionResult<ApiResponse<PermissionServicePermissionResponse>>> AddNewPermission([FromBody] string permissionName)
         {
             try
             {
-                var result = await _roleService.AddNewRoleAsync(roleName);
-                var response = new ApiResponse<RoleServiceResponse>
+                var result = await _permissionService.AddNewPermissionAsync(permissionName);
+                var response = new ApiResponse<PermissionServicePermissionResponse>
                 {
                     Status = new ApiStatus
                     {
@@ -32,11 +31,12 @@ namespace API.Controllers
                     Data = result,
                 };
 
-                return StatusCode(StatusCodes.Status200OK, response);
+                StatusCode(StatusCodes.Status200OK);
+                return response;
             }
             catch (ArgumentException ex)
             {
-                var response = new ApiResponse<RoleServiceResponse>
+                var response = new ApiResponse<PermissionServicePermissionResponse>
                 {
                     Status = new ApiStatus
                     {
@@ -46,19 +46,19 @@ namespace API.Controllers
                     Data = null,
                 };
 
-                return StatusCode(StatusCodes.Status400BadRequest, response);
+                StatusCode(StatusCodes.Status400BadRequest);
+                return response;
             }
-
         }
 
-        // DELETE: api/role/{id}
         [HttpDelete("{id}")]
-        public async Task<ActionResult<ApiResponse<RoleServiceResponse>>> DeleteRole(int id)
+        public async Task<ActionResult<ApiResponse<PermissionServicePermissionResponse>>> DeletePermission(int id)
         {
+
             try
             {
-                var result = await _roleService.DeleteRoleAsync(id);
-                var response = new ApiResponse<RoleServiceResponse>
+                var result = await _permissionService.DeletePermissionAsync(id);
+                var response = new ApiResponse<PermissionServicePermissionResponse>
                 {
                     Status = new ApiStatus
                     {
@@ -73,7 +73,7 @@ namespace API.Controllers
             }
             catch (ArgumentException ex)
             {
-                var response = new ApiResponse<RoleServiceResponse>
+                var response = new ApiResponse<PermissionServicePermissionResponse>
                 {
                     Status = new ApiStatus
                     {
@@ -88,14 +88,13 @@ namespace API.Controllers
             }
         }
 
-        // GET: api/role
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<List<RoleServiceResponse>>>> GetAllRoles()
+        public async Task<ActionResult<ApiResponse<List<PermissionServicePermissionResponse>>>> GetAllPermissions()
         {
             try
             {
-                var result = await _roleService.GetAllRoleAsync();
-                var response = new ApiResponse<List<RoleServiceResponse>>
+                var result = await _permissionService.GetAllPermissionAsync();
+                var response = new ApiResponse<List<PermissionServicePermissionResponse>>
                 {
                     Status = new ApiStatus
                     {
@@ -108,9 +107,10 @@ namespace API.Controllers
                 StatusCode(StatusCodes.Status200OK);
                 return response;
             }
+
             catch (ArgumentException ex)
             {
-                var response = new ApiResponse<List<RoleServiceResponse>>
+                var response = new ApiResponse<List<PermissionServicePermissionResponse>>
                 {
                     Status = new ApiStatus
                     {
@@ -125,14 +125,13 @@ namespace API.Controllers
             }
         }
 
-        // GET: api/role/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<ApiResponse<RoleServiceResponse>>> GetRoleById(int id)
+        public async Task<ActionResult<ApiResponse<PermissionServicePermissionResponse>>> GetPermissionById(int id)
         {
             try
             {
-                var result = await _roleService.GetRoleByIdAsync(id);
-                var response = new ApiResponse<RoleServiceResponse>
+                var result = await _permissionService.GetPermissionByIdAsync(id);
+                var response = new ApiResponse<PermissionServicePermissionResponse>
                 {
                     Status = new ApiStatus
                     {
@@ -147,7 +146,7 @@ namespace API.Controllers
             }
             catch (ArgumentException ex)
             {
-                var response = new ApiResponse<RoleServiceResponse>
+                var response = new ApiResponse<PermissionServicePermissionResponse>
                 {
                     Status = new ApiStatus
                     {
@@ -160,17 +159,16 @@ namespace API.Controllers
                 StatusCode(StatusCodes.Status400BadRequest);
                 return response;
             }
+
         }
 
-        // PUT: api/role/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponse<RoleServiceResponse>>> UpdateRole(int id, [FromBody] string roleName)
+        public async Task<ActionResult<ApiResponse<PermissionServicePermissionResponse>>> UpdatePermission(int id, [FromBody] string permissionName)
         {
-
             try
             {
-                var result = await _roleService.UpdateRoleAsync(id, roleName);
-                var response = new ApiResponse<RoleServiceResponse>
+                var result = await _permissionService.UpdatePermissionAsync(id, permissionName);
+                var response = new ApiResponse<PermissionServicePermissionResponse>
                 {
                     Status = new ApiStatus
                     {
@@ -185,7 +183,7 @@ namespace API.Controllers
             }
             catch (ArgumentException ex)
             {
-                var response = new ApiResponse<RoleServiceResponse>
+                var response = new ApiResponse<PermissionServicePermissionResponse>
                 {
                     Status = new ApiStatus
                     {
@@ -198,8 +196,6 @@ namespace API.Controllers
                 StatusCode(StatusCodes.Status400BadRequest);
                 return response;
             }
-
-
         }
     }
 
