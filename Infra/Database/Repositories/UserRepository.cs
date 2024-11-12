@@ -2,7 +2,7 @@ using Domain;
 using Microsoft.EntityFrameworkCore;
 using Infra.Database.DatabaseContext;
 using Core.Interfaces.Repositories;
-using Core.Interfaces.Services;
+using Core.Models;
 
 namespace Infra.Database.Repositories
 {
@@ -23,7 +23,7 @@ namespace Infra.Database.Repositories
             return user;
         }
 
-        public async Task<UserPageResult> GetAllUsersAsync(UserQueryParams queryParams)
+        public async Task<List<User>> GetAllUsersAsync(UserQueryParams queryParams)
         {
             var query = _context.Users
                 .Include(u => u.UserPermissions) // รวมข้อมูล Permissions ของผู้ใช้
@@ -52,9 +52,6 @@ namespace Infra.Database.Repositories
                 };
             }
 
-            // Calculate total count for pagination
-            int totalCount = await query.CountAsync();
-
             // Apply pagination
             int pageSize = queryParams.PageSize ?? 10;
             int pageNumber = queryParams.PageNumber ?? 1;
@@ -64,13 +61,7 @@ namespace Infra.Database.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new UserPageResult
-            {
-                Items = users,
-                TotalCount = totalCount,
-                PageSize = pageSize,
-                PageNumber = pageNumber
-            };
+            return users;
         }
 
         public async Task<User> GetUserByIdAsync(int userId)

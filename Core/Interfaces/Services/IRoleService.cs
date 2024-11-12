@@ -1,3 +1,5 @@
+using Core.Models;
+
 namespace Core.Interfaces.Services;
 
 public interface IRoleService
@@ -7,11 +9,4 @@ public interface IRoleService
     Task<List<RoleServiceResponse>> GetAllRoleAsync();
     Task<RoleServiceResponse> UpdateRoleAsync(int RoleId, string RoleName);
     Task<RoleServiceResponse> DeleteRoleAsync(int RoleId);
-}
-
-public class RoleServiceResponse
-{
-    public required string RoleId { get; set; } 
-    public required string RoleName { get; set; } 
-
 }

@@ -1,6 +1,7 @@
 using Domain;
 using Core.Interfaces.Services;
 using Core.Interfaces.Repositories;
+using Core.Models;
 
 namespace Core.Services;
 
@@ -15,6 +16,11 @@ public class RoleService : IRoleService
 
     public async Task<RoleServiceResponse> AddNewRoleAsync(string roleName)
     {
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            throw new ArgumentException("Role name is required.");
+        }
+
         // Create a new Role entity
         var role = new Role
         {
@@ -38,7 +44,7 @@ public class RoleService : IRoleService
         var role = await _roleRepository.GetRoleByIdAsync(roleId);
         if (role == null)
         {
-            throw new Exception("Role not found");
+            throw new ArgumentException("Role not found");
         }
 
         // Delete the role
@@ -71,7 +77,7 @@ public class RoleService : IRoleService
         var role = await _roleRepository.GetRoleByIdAsync(roleId);
         if (role == null)
         {
-            throw new Exception("Role not found");
+            throw new ArgumentException("Role not found");
         }
 
         // Return the response
@@ -84,11 +90,15 @@ public class RoleService : IRoleService
 
     public async Task<RoleServiceResponse> UpdateRoleAsync(int roleId, string roleName)
     {
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            throw new ArgumentException("Role name is required.");
+        }
         // Check if the role exists
         var role = await _roleRepository.GetRoleByIdAsync(roleId);
         if (role == null)
         {
-            throw new Exception("Role not found");
+            throw new ArgumentException("Role not found");
         }
 
         // Update the role name

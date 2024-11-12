@@ -1,6 +1,7 @@
 using Domain;
 using Core.Interfaces.Services;
 using Core.Interfaces.Repositories;
+using Core.Models;
 
 namespace Core.Services;
 
@@ -15,6 +16,10 @@ public class PermissionService : IPermissionService
 
     public async Task<PermissionServicePermissionResponse> AddNewPermissionAsync(string permissionName)
     {
+        if (string.IsNullOrWhiteSpace(permissionName))
+        {
+            throw new ArgumentException("Permission name is required.");
+        }
         // Create a new Permission entity
         var permission = new Permission
         {
@@ -38,7 +43,7 @@ public class PermissionService : IPermissionService
         var permission = await _permissionRepository.GetPermissionByIdAsync(permissionId);
         if (permission == null)
         {
-            throw new Exception("Permission not found");
+            throw new ArgumentException("Permission not found");
         }
 
         // Delete the permission
@@ -71,7 +76,7 @@ public class PermissionService : IPermissionService
         var permission = await _permissionRepository.GetPermissionByIdAsync(permissionId);
         if (permission == null)
         {
-            throw new Exception("Permission not found");
+            throw new ArgumentException("Permission not found");
         }
 
         // Return the response
@@ -84,11 +89,16 @@ public class PermissionService : IPermissionService
 
     public async Task<PermissionServicePermissionResponse> UpdatePermissionAsync(int permissionId, string permissionName)
     {
+        if (string.IsNullOrWhiteSpace(permissionName))
+        {
+            throw new ArgumentException("Permission name is required.");
+        }
+
         // Check if the permission exists
         var permission = await _permissionRepository.GetPermissionByIdAsync(permissionId);
         if (permission == null)
         {
-            throw new Exception("Permission not found");
+            throw new ArgumentException("Permission not found");
         }
 
         // Update the permission name

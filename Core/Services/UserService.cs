@@ -1,6 +1,7 @@
 using Domain;
 using Core.Interfaces.Services;
 using Core.Interfaces.Repositories;
+using Core.Models;
 
 namespace Core.Services;
 
@@ -20,18 +21,18 @@ public class UserService : IUserService
     }
 
     // Add a new user
-    public async Task<UserServiceResponse> AddNewUserAsync(UserServiceUserInput input)
+    public async Task<UserResponse> AddNewUserAsync(AddUserRequest input)
     {
         // Validate and parse RoleId
         if (!int.TryParse(input.RoleId, out int roleId))
         {
-            throw new Exception("Bad request. Role ID is invalid");
+            throw new ArgumentException("Bad request. Role ID is invalid");
         }
 
         var role = await _roleRepository.GetRoleByIdAsync(roleId);
         if (role is null)
         {
-            throw new Exception("Bad request. Role not found");
+            throw new ArgumentException("Bad request. Role not found");
         }
 
         // Validate permissions
@@ -40,19 +41,19 @@ public class UserService : IUserService
         {
             if (!int.TryParse(permissionInput.PermissionId, out int permissionId))
             {
-                throw new Exception("Bad request. Permission ID is invalid");
+                throw new ArgumentException("Bad request. Permission ID is invalid");
             }
 
             var permission = await _permissionRepository.GetPermissionByIdAsync(permissionId);
             if (permission is null)
             {
-                throw new Exception($"Bad request. Permission ID {permissionId} not found");
+                throw new ArgumentException($"Bad request. Permission ID {permissionId} not found");
             }
 
             // Validate permission input fields
             if (!permissionInput.IsReadable && !permissionInput.IsWritable && !permissionInput.IsDeletable)
             {
-                throw new Exception("Bad request. At least one permission must be granted.");
+                throw new ArgumentException("Bad request. At least one permission must be granted.");
             }
 
             // Add valid permissions to the list
@@ -85,7 +86,7 @@ public class UserService : IUserService
         }
 
         // Prepare the response
-        var userResponse = new UserServiceResponse
+        var userResponse = new UserResponse
         {
             UserId = createdUser.UserId.ToString(),
             FirstName = createdUser.FirstName,
@@ -93,12 +94,12 @@ public class UserService : IUserService
             Email = createdUser.Email,
             Phone = createdUser.Phone,
             Username = createdUser.Username,
-            Role = new UserServiceRoleResponse
+            Role = new RoleResponse
             {
                 RoleId = role.RoleId.ToString(),
                 RoleName = role.RoleName,
             },
-            Permissions = userPermissions.Select(up => new UserServicePermissionResponse
+            Permissions = userPermissions.Select(up => new PermissionResponse
             {
                 PermissionId = up.PermissionId.ToString(),
                 PermissionName = up.Permission.PermissionName
@@ -109,12 +110,12 @@ public class UserService : IUserService
     }
 
     // Get user by id
-    public async Task<UserServiceResponse> GetUserByIdAsync(int userId)
+    public async Task<UserResponse> GetUserByIdAsync(int userId)
     {
         var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user is null) throw new Exception("Bad request. User not found");
+        if (user is null) throw new ArgumentException("Bad request. User not found");
 
-        var response = new UserServiceResponse
+        var response = new UserResponse
         {
             UserId = user.UserId.ToString(),
             FirstName = user.FirstName,
@@ -122,12 +123,12 @@ public class UserService : IUserService
             Email = user.Email,
             Phone = user.Phone,
             Username = user.Username,
-            Role = new UserServiceRoleResponse
+            Role = new RoleResponse
             {
                 RoleId = user.Role.RoleId.ToString(),
                 RoleName = user.Role.RoleName
             },
-            Permissions = user.UserPermissions.Select(up => new UserServicePermissionResponse
+            Permissions = user.UserPermissions.Select(up => new PermissionResponse
             {
                 PermissionId = up.Permission.PermissionId.ToString(),
                 PermissionName = up.Permission.PermissionName
@@ -138,13 +139,13 @@ public class UserService : IUserService
     }
 
     // Delete user
-    public async Task<UserServiceDeleteResponse> DeleteUserAsync(int userId)
+    public async Task<DeleteUserResponse> DeleteUserAsync(int userId)
     {
         var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user is null) throw new Exception("Bad request. User not found");
+        if (user is null) throw new ArgumentException("Bad request. User not found");
 
         await _userRepository.DeleteUserAsync(userId);
-        return new UserServiceDeleteResponse
+        return new DeleteUserResponse
         {
             result = true,
             message = $"deleted user id {userId}"
@@ -152,21 +153,21 @@ public class UserService : IUserService
     }
 
     // Update user
-    public async Task<UserServiceResponse> UpdateUserAsync(int userId, UserServiceUserInput input)
+    public async Task<UserResponse> UpdateUserAsync(int userId, AddUserRequest input)
     {
         var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user is null) throw new Exception("Bad request. User not found");
+        if (user is null) throw new ArgumentException("Bad request. User not found");
 
         // Validate and parse RoleId
         if (!int.TryParse(input.RoleId, out int roleId))
         {
-            throw new Exception("Bad request. Role ID is invalid");
+            throw new ArgumentException("Bad request. Role ID is invalid");
         }
 
         var role = await _roleRepository.GetRoleByIdAsync(roleId);
         if (role is null)
         {
-            throw new Exception("Bad request. Role not found");
+            throw new ArgumentException("Bad request. Role not found");
         }
 
         // Validate permissions
@@ -175,19 +176,19 @@ public class UserService : IUserService
         {
             if (!int.TryParse(permissionInput.PermissionId, out int permissionId))
             {
-                throw new Exception("Bad request. Permission ID is invalid");
+                throw new ArgumentException("Bad request. Permission ID is invalid");
             }
 
             var foundPermission = await _permissionRepository.GetPermissionByIdAsync(permissionId);
             if (foundPermission is null)
             {
-                throw new Exception($"Bad request. Permission ID {permissionId} not found");
+                throw new ArgumentException($"Bad request. Permission ID {permissionId} not found");
             }
 
             // Validate permission input fields
             if (!permissionInput.IsReadable && !permissionInput.IsWritable && !permissionInput.IsDeletable)
             {
-                throw new Exception("Bad request. At least one permission must be granted.");
+                throw new ArgumentException("Bad request. At least one permission must be granted.");
             }
 
             // Add valid permissions to the list
@@ -222,65 +223,40 @@ public class UserService : IUserService
 
     }
 
-    public async Task<UserServiceResponseWithPaging> GetAllUsersAsync(UserQueryParams queryParams)
+    public async Task<ApiResponseWithPaging<UserResponse>> GetAllUsersAsync(UserQueryParams queryParams)
     {
-        var pagedUsers = await _userRepository.GetAllUsersAsync(queryParams);
 
-        var userResponses = pagedUsers.Items.Select(user => new UserServiceResponse
+        // Fetch data from repository
+        var users = await _userRepository.GetAllUsersAsync(queryParams);
+
+        // Transform users to response model
+        var userResponses = users.Select(user => new UserResponse
         {
             UserId = user.UserId.ToString(),
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
-            
-            Role = new UserServiceRoleResponse
+            Role = new RoleResponse
             {
                 RoleId = user.Role.RoleId.ToString(),
                 RoleName = user.Role.RoleName
             },
             Username = user.Username,
-            Permissions = user.UserPermissions.Select(up => new UserServicePermissionResponse
+            Permissions = user.UserPermissions.Select(up => new PermissionResponse
             {
                 PermissionId = up.Permission.PermissionId.ToString(),
                 PermissionName = up.Permission.PermissionName
             }).ToList(),
         }).ToList();
 
-        return new UserServiceResponseWithPaging
+        // Return paginated response
+        return new ApiResponseWithPaging<UserResponse>
         {
             DataSource = userResponses,
-            Page = queryParams.PageNumber ?? 0,
+            Page = queryParams.PageNumber ?? 1,
             PageSize = queryParams.PageSize ?? 10,
-            TotalCount = pagedUsers.TotalCount
+            TotalCount = users.Count()
         };
     }
-
-
-
-    // Get all users
-    // public async Task<List<UserServiceResponse>> GetUsersAsync()
-    // {
-    //     var users = await _userRepository.GetAllUsersAsync();
-
-    //     return users.Select(user => new UserServiceResponse
-    //     {
-    //         UserId = user.UserId.ToString(),
-    //         FirstName = user.FirstName,
-    //         LastName = user.LastName,
-    //         Email = user.Email,
-    //         Phone = user.Phone,
-    //         Username = user.Username,
-    //         Role = new UserServiceRoleResponse
-    //         {
-    //             RoleId = user.Role.RoleId.ToString(),
-    //             RoleName = user.Role.RoleName
-    //         },
-    //         Permissions = user.UserPermissions.Select(up => new UserServicePermissionResponse
-    //         {
-    //             PermissionId = up.Permission.PermissionId,
-    //             PermissionName = up.Permission.PermissionName
-    //         }).FirstOrDefault() // Assuming a single permission; adjust as needed
-    //     }).ToList();
-    // }
 
 }
